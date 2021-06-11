@@ -87,6 +87,7 @@
 
   function deleteEntry(id){
     db.collection('sports').doc(id).delete();
+    showSports();
   }
 
   function showSports() {
