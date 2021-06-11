@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="de">
+
+<head>
+  <meta charset="utf-8">
+  <title>Titel</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+<script src="https://www.gstatic.com/firebasejs/5.0.3/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.0.3/firebase-firestore.js"></script>
+<style>
+  table,
+  tr,
+  td {
+    border-style: solid;
+    border-width: 1px;
+    border-collapse: collapse;
+    border-color: black;
+    padding: .5rem;
+
+  }
+
+  th {
+    margin-bottom: 1rem;
+    border-width: 3px;
+  }
+
+  input[type="number"] {
+    width: 3rem;
+  }
+</style>
+
+<body>
+  <h3>my Sports Diary</h3>
+  <form id="frmActivity">
+    <select name="activity" id="optActivity" onchange="selectActivity(event);">
+        <option>Schwimmen</option>
+        <option>Radfahren</option>
+      </select>
+    </form>
+  <br>
+  <table>
+    <thead>
+      <tr>
+        <form id="frmSport">
+          <th><input type="date" id="date" name="date"></th>
+          <th><input type="number" id="distance" name="distance" placeholder="Distanz" size="5"></th>
+          <th><button>send</button></th>
+        </form>
+      </tr>
+    </thead>
+    <tbody id="tblOutput"></tbody>
+  </table>
+</body>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyDw_akOHokaCObViq03C5fI3QTPzQk9w_o",
+    authDomain: "app4-50a59.firebaseapp.com",
+    databaseURL: "https://app4-50a59.firebaseio.com",
+    projectId: "app4-50a59",
+    storageBucket: "app4-50a59.appspot.com",
+    messagingSenderId: "390654674553",
+    appId: "1:390654674553:web:092a5df880fa6f6516b6a8"
+  };
+  firebase.initializeApp(config);
+  const db = firebase.firestore();
+  db.settings({ timestampsInSnapshots: true });
+  //-------------------------------------------------------------
+  let name = "Sigi";
+  let activity = "Schwimmen";
+  const frmSport = document.getElementById("frmSport");
+  const frmActivity = document.getElementById("frmActivity");
+  const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+
+  //db.collection('sports').on('value')
+
+  showSports();
+
+
+  function selectActivity() {
+      activity = event.target.value;
+      showSports();
+    }
+
+  function deleteEntry(id){
+    db.collection('sports').doc(id).delete();
+  }
+
+  function showSports() {
+    tblOutput.innerHTML="";
+    db.collection('sports').where("activity", "==", activity).orderBy('date', 'desc').get().then(snapshot => {
+      snapshot.docs.forEach(doc => {
+        let id = doc.id;
+        let name = doc.data().name;
+        let activity = doc.data().activity;
+        let distance = doc.data().distance;
+        let timestamp = doc.data().timestamp;
+        //let date = doc.data().date;
+        let date = new Date(doc.data().date).toLocaleString('de-DE', options);
+        let row = `<tr><td>${date}</td><td>${distance}</td><td><button onclick="deleteEntry('${id}')"> X </button></td></tr>`;
+        tblOutput.innerHTML += row;
+      });
+    });
+  }
+
+
+  frmSport.addEventListener('submit', (e) => {
+    e.preventDefault();
+    db.collection('sports').add({
+      name: name,
+      activity: activity,
+      date: frmSport.date.value,
+      distance: frmSport.distance.value
+    });
+    frmSport.date.value = '';
+    frmSport.distance.value = '';
+    showSports();
+  });
+
+</script>
+
+</html>
