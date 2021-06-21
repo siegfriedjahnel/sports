@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Titel</title>
+  <title>My personal sports diary</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -41,6 +41,7 @@
       </select>
     </form>
   <br>
+  <div>Summebis jetzt: <span id="tfSumme"></span> Meter</div>
   <table>
     <thead>
       <tr>
@@ -74,7 +75,7 @@
   const frmSport = document.getElementById("frmSport");
   const frmActivity = document.getElementById("frmActivity");
   const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-
+  const tfSumme = document.getElementById("tfSumme");
   //db.collection('sports').on('value')
 
   showSports();
@@ -91,6 +92,7 @@
   }
 
   function showSports() {
+    let summe = 0;
     tblOutput.innerHTML="";
     db.collection('sports').where("activity", "==", activity).orderBy('date', 'desc').get().then(snapshot => {
       snapshot.docs.forEach(doc => {
@@ -99,11 +101,13 @@
         let activity = doc.data().activity;
         let distance = doc.data().distance;
         let timestamp = doc.data().timestamp;
+        summe = summe + parseInt(distance);
         //let date = doc.data().date;
         let date = new Date(doc.data().date).toLocaleString('de-DE', options);
         let row = `<tr><td>${date}</td><td>${distance}</td><td><button onclick="deleteEntry('${id}')"> X </button></td></tr>`;
         tblOutput.innerHTML += row;
       });
+      tfSumme.innerText = summe;
     });
   }
 
