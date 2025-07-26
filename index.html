@@ -6,59 +6,54 @@
   <title>My personal sports diary</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.css">
+<link rel="manifest" href="manifest.json" />
 
 </head>
 <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/5.0.3/firebase-firestore.js"></script>
 <style>
-  table,
-  tr,
-  td {
-    border-style: solid;
-    border-width: 1px;
-    border-collapse: collapse;
-    border-color: black;
-    padding: .5rem;
-
-  }
-  table {
-    width: 100%;
-  }
-
-  th {
-    margin-bottom: 1rem;
-    border-width: 3px;
-  }
-
-  input[type="number"] {
-    width: 3rem;
-  }
+  
 </style>
-
 <body>
-  <h3>my Sports Diary</h3>
-  <form id="frmActivity">
-    <select name="activity" id="optActivity" onchange="selectActivity(event);">
-        <option>Schwimmen</option>
-        <option>Radfahren</option>
-      </select>
-    </form>
-  <br>
-  <div>Summe bis jetzt: <span id="tfSumme"></span> Meter</div>
+  <h3>My Sports Diary</h3>
+  <div id="dvActivity">
+
+  </div>
+  <details>
+    <summary>Eingabe</summary>
+    <form id="frmActivity">
+      <select name="activity" id="optActivity" onchange="selectActivity(event);">
+          <option>Schwimmen</option>
+          <option>Radfahren</option>
+        </select>
+      </form>
+      <form id="frmSport">
+        <th><input type="date" id="date" name="date"></th>
+        <th><input type="number" id="distance" name="distance" placeholder="Distanz" size="5"></th>
+        <th><button>send</button></th>
+      </form>
+  </details>
+  <div>
+  </div>
+  <details>
+    <summary>Statistik/Details</summary>
+    <div>Summe bis jetzt: <span id="tfSumme"></span> m</div>
+    <div>Jahressumme <span id="tfJahressumme"></span> m</div>
+  </details>
   <table>
     <thead>
       <tr>
-        <form id="frmSport">
-          <th><input type="date" id="date" name="date"></th>
-          <th><input type="number" id="distance" name="distance" placeholder="Distanz" size="5"></th>
-          <th><button>send</button></th>
-        </form>
+        <th>Datum</th>
+        <th>Strecke</th>
+        <th></th>
       </tr>
     </thead>
     <tbody id="tblOutput"></tbody>
   </table>
 </body>
 <script>
+  navigator.serviceWorker.register("/serviceworker.js");
   // Initialize Firebase
   var config = {
     apiKey: "AIzaSyDw_akOHokaCObViq03C5fI3QTPzQk9w_o",
@@ -79,6 +74,8 @@
   const frmActivity = document.getElementById("frmActivity");
   const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
   const tfSumme = document.getElementById("tfSumme");
+  const tfJahressumme = document.getElementById("tfJahressumme");
+  const dvActivity = document.getElementById("dvActivity");
   //db.collection('sports').on('value')
 
   showSports();
@@ -96,7 +93,13 @@
 
   function showSports() {
     let summe = 0;
+    let jahressumme = 0;
+    let count = 0;
     tblOutput.innerHTML="";
+    dvActivity.innerText = activity;
+    const diesesJahr = new Date().getFullYear();
+    const jaStr = diesesJahr+'-01-01';
+    let jahresanfang = new Date(jaStr);
     db.collection('sports').where("activity", "==", activity).orderBy('date', 'desc').get().then(snapshot => {
       snapshot.docs.forEach(doc => {
         let id = doc.id;
@@ -104,13 +107,20 @@
         let activity = doc.data().activity;
         let distance = doc.data().distance;
         let timestamp = doc.data().timestamp;
+        let tag = new Date(doc.data().date);
+        // console.log("jahresanfang",jahresanfang,tag);
+        if(tag > jahresanfang){
+          jahressumme = jahressumme + parseInt(distance);
+          count++;
+        }
         summe = summe + parseInt(distance);
         //let date = doc.data().date;
         let date = new Date(doc.data().date).toLocaleString('de-DE', options);
-        let row = `<tr><td>${date}</td><td>${distance}</td><td><button onclick="deleteEntry('${id}')"> X </button></td></tr>`;
+        let row = `<tr><td>${date}</td><td>${distance}</td><td><img src="delete_24.png" onclick="deleteEntry('${id}')"> </td></tr>`;
         tblOutput.innerHTML += row;
       });
       tfSumme.innerText = summe;
+      tfJahressumme.innerText = `${diesesJahr}(${count}): ${jahressumme}`;
     });
   }
 
