@@ -3,8 +3,8 @@
   "name": "MY sports diary",
   "icons": [
     {
-      "src": "icon-96.png",
-      "sizes": "96x96",
+      "src": "icon-144.png",
+      "sizes": "144x144",
       "type": "image/png"
     }
   ],
